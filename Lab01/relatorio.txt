@@ -1,0 +1,389 @@
+Pedro Felipe Santos Magalhães- 1611074
+
+QUESTÃO 1) Utilizando os comandos fork(), waitpid() e exit() faça um programa composto por dois processos: processo pai e processo filho.
+Pai: Imprime “Processo pai iniciado”, o seu pid e o pid de seu filho, espera o filho terminar e imprime "Processo pai finalizado".
+Filho: Imprime “Processo filho iniciado”, o seu pid, o pid do seu pai, e ao terminar imprime "Processo filho finalizado".
+-----------------------------------------------------
+ARQUIVO.C
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+
+int main(void){
+int pid_filho,status;
+int meu_pid;
+meu_pid = getpid();
+pid_filho=fork();
+if (pid_filho != 0) {
+	
+	printf("Processo Pai iniciado,meu pid %d pid filho %d\n\n",meu_pid,pid_filho);
+	waitpid( -1, &status, 0);/* wait for child to exit */
+	
+	printf("Processo Pai finalizado\n");
+} else {
+	pid_filho = getpid();
+
+	printf("Processo Filho iniciado,meu pid %d pid pai %d\n\n",pid_filho,meu_pid);
+	
+	printf("Processo Filho finalizado\n\n");
+
+	exit(1);
+
+}
+
+	return 0;
+}
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+$ gcc -o lab01 Lab01.c
+$ ./lab01
+-----------------------------------------------------
+RESULTADO
+Processo Pai iniciado,meu pid 3269 pid filho 3270
+
+Processo Filho iniciado,meu pid 3270 pid pai 3269
+
+Processo Filho finalizado
+
+Processo Pai finalizado
+
+-----------------------------------------------------
+CONCLUSÃO
+Criei um variavel para guardar o fork, uma para guardar o Pid do pai (meu_pid), fiz um getpid() fora do if() do fork
+para que a variavel já estivesse inicializada no processo filho, assim o pid do pai já estaria no filho e só fiz um novo 
+getpid() pra pegar o pid do filho. 
+-----------------------------------------------------
+QUESTÃO 2) Ainda com um programa composto por dois processos, crie uma variável visível ao pai e ao filho iniciada com o valor zero.
+O pai deve executar um loop de 100 vezes, somar 5 a esta variável a cada iteração do loop e imprimir o texto:
+*Pai <PID> - <valor da variável>*.
+O filho deve executar um loop de 100 vezes, somar 10 a esta variável a cada iteração do loop e imprimir o texto:
+*Filho <PID> - <valor da variável>*.
+a) O que você observou sobre o valor da variável no pai e no filho?
+b) O que você observou sobre a concorrência entre os processos?
+c) Explique o por quê destes comportamentos.
+-----------------------------------------------------
+ARQUIVO.C
+/*lab02.c*/
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+
+int main(void){
+int pid_filho,status;
+int meu_pid;
+int meu_inteiro=0;
+int i;
+
+meu_pid = getpid();
+pid_filho=fork();
+
+
+if (pid_filho != 0) {
+	
+
+	for(i=0;i<100;i++){
+		printf("PAI<%d> - <%d>\n",meu_pid,meu_inteiro);
+		meu_inteiro+=5;
+	}
+	waitpid( -1, &status, 0);/* wait for child to exit */
+
+	
+} else {
+	pid_filho = getpid();
+	
+	for(i=0;i<100;i++){
+		printf("FILHO<%d> - <%d>\n",pid_filho ,meu_inteiro);
+		meu_inteiro+=10;
+
+	}
+	
+
+	exit(1);
+
+}
+
+	return 0;
+}
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+$ gcc -o lab01 Lab01.c
+$ ./lab02
+-----------------------------------------------------
+RESULTADO
+PAI<3541> - <0>
+PAI<3541> - <5>
+PAI<3541> - <10>
+PAI<3541> - <15>
+PAI<3541> - <20>
+PAI<3541> - <25>
+PAI<3541> - <30>
+PAI<3541> - <35>
+PAI<3541> - <40>
+PAI<3541> - <45>
+PAI<3541> - <50>
+PAI<3541> - <55>
+PAI<3541> - <60>
+PAI<3541> - <65>
+PAI<3541> - <70>
+PAI<3541> - <75>
+PAI<3541> - <80>
+PAI<3541> - <85>
+PAI<3541> - <90>
+PAI<3541> - <95>
+PAI<3541> - <100>
+PAI<3541> - <105>
+PAI<3541> - <110>
+PAI<3541> - <115>
+PAI<3541> - <120>
+PAI<3541> - <125>
+PAI<3541> - <130>
+PAI<3541> - <135>
+PAI<3541> - <140>
+PAI<3541> - <145>
+PAI<3541> - <150>
+PAI<3541> - <155>
+PAI<3541> - <160>
+PAI<3541> - <165>
+PAI<3541> - <170>
+PAI<3541> - <175>
+PAI<3541> - <180>
+PAI<3541> - <185>
+PAI<3541> - <190>
+PAI<3541> - <195>
+PAI<3541> - <200>
+PAI<3541> - <205>
+PAI<3541> - <210>
+PAI<3541> - <215>
+PAI<3541> - <220>
+PAI<3541> - <225>
+PAI<3541> - <230>
+PAI<3541> - <235>
+PAI<3541> - <240>
+PAI<3541> - <245>
+PAI<3541> - <250>
+FILHO<3542> - <0>
+PAI<3541> - <255>
+PAI<3541> - <260>
+FILHO<3542> - <10>
+PAI<3541> - <265>
+FILHO<3542> - <20>
+PAI<3541> - <270>
+FILHO<3542> - <30>
+PAI<3541> - <275>
+FILHO<3542> - <40>
+PAI<3541> - <280>
+FILHO<3542> - <50>
+PAI<3541> - <285>
+FILHO<3542> - <60>
+PAI<3541> - <290>
+FILHO<3542> - <70>
+PAI<3541> - <295>
+FILHO<3542> - <80>
+PAI<3541> - <300>
+FILHO<3542> - <90>
+PAI<3541> - <305>
+FILHO<3542> - <100>
+PAI<3541> - <310>
+FILHO<3542> - <110>
+PAI<3541> - <315>
+FILHO<3542> - <120>
+PAI<3541> - <320>
+FILHO<3542> - <130>
+PAI<3541> - <325>
+FILHO<3542> - <140>
+PAI<3541> - <330>
+FILHO<3542> - <150>
+PAI<3541> - <335>
+FILHO<3542> - <160>
+PAI<3541> - <340>
+FILHO<3542> - <170>
+PAI<3541> - <345>
+FILHO<3542> - <180>
+PAI<3541> - <350>
+FILHO<3542> - <190>
+PAI<3541> - <355>
+FILHO<3542> - <200>
+PAI<3541> - <360>
+FILHO<3542> - <210>
+PAI<3541> - <365>
+FILHO<3542> - <220>
+PAI<3541> - <370>
+FILHO<3542> - <230>
+PAI<3541> - <375>
+FILHO<3542> - <240>
+PAI<3541> - <380>
+FILHO<3542> - <250>
+PAI<3541> - <385>
+FILHO<3542> - <260>
+PAI<3541> - <390>
+FILHO<3542> - <270>
+PAI<3541> - <395>
+FILHO<3542> - <280>
+PAI<3541> - <400>
+FILHO<3542> - <290>
+PAI<3541> - <405>
+FILHO<3542> - <300>
+PAI<3541> - <410>
+FILHO<3542> - <310>
+PAI<3541> - <415>
+FILHO<3542> - <320>
+PAI<3541> - <420>
+FILHO<3542> - <330>
+PAI<3541> - <425>
+FILHO<3542> - <340>
+PAI<3541> - <430>
+FILHO<3542> - <350>
+PAI<3541> - <435>
+FILHO<3542> - <360>
+PAI<3541> - <440>
+FILHO<3542> - <370>
+PAI<3541> - <445>
+FILHO<3542> - <380>
+PAI<3541> - <450>
+FILHO<3542> - <390>
+PAI<3541> - <455>
+FILHO<3542> - <400>
+PAI<3541> - <460>
+FILHO<3542> - <410>
+PAI<3541> - <465>
+FILHO<3542> - <420>
+PAI<3541> - <470>
+FILHO<3542> - <430>
+PAI<3541> - <475>
+FILHO<3542> - <440>
+PAI<3541> - <480>
+FILHO<3542> - <450>
+PAI<3541> - <485>
+FILHO<3542> - <460>
+PAI<3541> - <490>
+FILHO<3542> - <470>
+PAI<3541> - <495>
+FILHO<3542> - <480>
+FILHO<3542> - <490>
+FILHO<3542> - <500>
+FILHO<3542> - <510>
+FILHO<3542> - <520>
+FILHO<3542> - <530>
+FILHO<3542> - <540>
+FILHO<3542> - <550>
+FILHO<3542> - <560>
+FILHO<3542> - <570>
+FILHO<3542> - <580>
+FILHO<3542> - <590>
+FILHO<3542> - <600>
+FILHO<3542> - <610>
+FILHO<3542> - <620>
+FILHO<3542> - <630>
+FILHO<3542> - <640>
+FILHO<3542> - <650>
+FILHO<3542> - <660>
+FILHO<3542> - <670>
+FILHO<3542> - <680>
+FILHO<3542> - <690>
+FILHO<3542> - <700>
+FILHO<3542> - <710>
+FILHO<3542> - <720>
+FILHO<3542> - <730>
+FILHO<3542> - <740>
+FILHO<3542> - <750>
+FILHO<3542> - <760>
+FILHO<3542> - <770>
+FILHO<3542> - <780>
+FILHO<3542> - <790>
+FILHO<3542> - <800>
+FILHO<3542> - <810>
+FILHO<3542> - <820>
+FILHO<3542> - <830>
+FILHO<3542> - <840>
+FILHO<3542> - <850>
+FILHO<3542> - <860>
+FILHO<3542> - <870>
+FILHO<3542> - <880>
+FILHO<3542> - <890>
+FILHO<3542> - <900>
+FILHO<3542> - <910>
+FILHO<3542> - <920>
+FILHO<3542> - <930>
+FILHO<3542> - <940>
+FILHO<3542> - <950>
+FILHO<3542> - <960>
+FILHO<3542> - <970>
+FILHO<3542> - <980>
+FILHO<3542> - <990>
+
+-----------------------------------------------------
+CONCLUSÃO
+Conclui que os processos em execução alternam durante a execução do programa, e que a "mesma"
+variavel tem valores diferentes em cada processo. Isso ocorre porque como no fork os programas são copias identicas, eles compartilham os valores iniciais das variaveis.
+No entanto, a partir do fork() eles passam a ter as variáveis em locais de memoria independentes e a alteração que um faz não altera a variavel do outro.
+O motivo da alternancia entre os processos é o Time-sharing implementado pelo sistema unix.
+-------------------------------------------------------------
+
+QUESTÃO 3) Faça um programa em que três processos executam em paralelo as seguintes ações:
+Pai: Imprime os números de 0 a 99, com um intervalo de 1 segundo entre a impressão de cada número. Após imprimir todos os números, imprime a frase “Processo pai vai finalizar” e finaliza quando o filho terminar.
+Filho: Imprime os números de 100 a 199, com um intervalo de 2 segundo entre a impressão cada número. Antes de imprimir os números, imprime a frase “Filho foi criado”. Após imprimir todos os números, imprime a frase “processo filho vai finalizar” e finaliza quando o neto terminar.Neto: filho do processo Filho (ou seja, neto do processo Pai). Imprime os números de 200 a 299, com um intervalo de 3 segundos entre cada número. Antes de imprimir os números, imprime a frase “Neto foi criado”. Após imprimir todos os números, imprime a frase “processo neto vai finalizar” e finaliza o processo.
+Importante: Em cada printf os processos devem imprimir o seu pid e o pid do seu pai.
+-----------------------------------------------------
+ARQUIVO.C
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+
+int main(void){
+int pid_filho,status;
+int meu_pid;
+meu_pid = getpid();
+pid_filho=fork();
+if (pid_filho != 0) {
+	
+	printf("Processo Pai iniciado,meu pid %d pid filho %d\n\n",meu_pid,pid_filho);
+	waitpid( -1, &status, 0);/* wait for child to exit */
+	
+	printf("Processo Pai finalizado\n");
+} else {
+	pid_filho = getpid();
+
+	printf("Processo Filho iniciado,meu pid %d pid pai %d\n\n",pid_filho,meu_pid);
+	
+	printf("Processo Filho finalizado\n\n");
+
+	exit(1);
+
+}
+
+	return 0;
+}
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+$ gcc -o lab01 Lab01.c
+$ ./lab01
+-----------------------------------------------------
+RESULTADO
+Processo Pai iniciado,meu pid 3269 pid filho 3270
+
+Processo Filho iniciado,meu pid 3270 pid pai 3269
+
+Processo Filho finalizado
+
+Processo Pai finalizado
+
+-----------------------------------------------------
+CONCLUSÃO
+Criei um variavel para guardar o fork, uma para guardar o Pid do pai (meu_pid), fiz um getpid() fora do if() do fork
+para que a variavel já estivesse inicializada no processo filho, assim o pid do pai já estaria no filho e só fiz um novo 
+getpid() pra pegar o pid do filho. 
+-----------------------------------------------------
