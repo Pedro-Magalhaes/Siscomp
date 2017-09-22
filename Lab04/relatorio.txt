@@ -1,3 +1,21 @@
+ALUNO: Pedro Felipe Santos Magalhães – 1611074
+
+
+
+QUESTÃO 1) Usando processos, escreva um programa C que implemente o problema do
+produtor/consumidor.
+O produtor e o consumidor devem ser filhos de um processo pai.
+O produtor deve produzir dados (números inteiros pseudo-aleatórios) a cada 1 segundo
+colocando-os em uma fila (buffer, implementação circular).
+O consumidor deve retirar dados da fila a cada 2 segundos.
+O tamanho máximo da fila deve ser de 8 elementos (MAXFILA) e tanto o produtor como o
+consumidor devem produzir/consumir 64 elementos (números inteiros de 1 a 64, por
+exemplo).
+Usar as funções pause() para o processo dormir e kill (pid, SIGCONT) para acordar o outro
+processo.
+-----------------------------------------------------
+ARQUIVO.C
+/*Lab01.c*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/shm.h>
@@ -167,3 +185,120 @@ sigPos[3]=0;//numero de elementos no vetor
 
 	return 0;
 }
+
+
+
+
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+//alguns warnings pq usai char como indice do vetor da lista
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab04$ gcc -Wall Lab01.c 
+Lab01.c: In function ‘main’:
+Lab01.c:90:17: warning: array subscript has type ‘char’ [-Wchar-subscripts]
+        aux=vetor[sigPos[1]]; //pega a memoria
+                 ^
+Lab01.c:91:13: warning: array subscript has type ‘char’ [-Wchar-subscripts]
+        vetor[sigPos[1]]=-1;
+             ^
+Lab01.c:147:13: warning: array subscript has type ‘char’ [-Wchar-subscripts]
+        vetor[sigPos[2]]=i;
+             ^
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab04$ ./a.out 
+
+
+-----------------------------------------------------
+RESULTADO
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab04$ ./a.out 
+consumido 0
+consumido 1
+consumido 2
+consumido 3
+consumido 4
+consumido 5
+consumido 6
+consumido 7
+consumido 8
+consumido 9
+consumido 10
+consumido 11
+consumido 12
+consumido 13
+consumido 14
+consumido 15
+consumido 16
+consumido 17
+consumido 18
+consumido 19
+consumido 20
+consumido 21
+consumido 22
+consumido 23
+consumido 24
+consumido 25
+consumido 26
+consumido 27
+consumido 28
+consumido 29
+consumido 30
+consumido 31
+consumido 32
+consumido 33
+consumido 34
+consumido 35
+consumido 36
+consumido 37
+consumido 38
+consumido 39
+consumido 40
+consumido 41
+consumido 42
+consumido 43
+consumido 44
+consumido 45
+consumido 46
+consumido 47
+consumido 48
+consumido 49
+consumido 50
+consumido 51
+consumido 52
+consumido 53
+consumido 54
+consumido 55
+consumido 56
+produdor terminou trabalho
+consumido 57
+consumido 58
+consumido 59
+consumido 60
+consumido 61
+consumido 62
+consumido 63
+Consumidor terminou trabalho
+1o terminado
+tudo terminado
+
+
+-----------------------------------------------------
+CONCLUSÃO
+Foi um trabalho interessante, com algumas dificuldades consegui fazer o programa rodar certinho(ainda que
+raramente os dois processos fiquem pausados e o programa nao termina) mesmo sem usar o sleep nos processos.
+Implementei uma maneira de um processo bloquear o outro enquanto um tivesse usando a memória, mas como
+o processo Consumidor dava print quando consumia um elemento do vetor o processo Produtor ficava bloqueado
+muitas vezes, assim decidi criar uma variavel auxiliar e fiz o print depois de setar a flag pra false e o
+programa passou a nao imprimir nenhum conflito de acesso na memoria(coloquei print caso o processo fosse bloqueado).
+Outra questão foi que quando meu processo consumidor estava se pausando el pausava o programa inteiro,
+percebi que o que ocorria era que atribui minha variavel compartilhada que guardava pid do filho antes de 
+testar para ver se estava no filho ou no Pai, assim o pai atribuia o valor correto mas o filho colocava 0,
+assim ele pausava todos os processos.(foi bom pra descobrir que o kill com pid 0 pausa todos em um certo range).
+Tive alguns Deadlocks porque os processos pausavam juntos na ultima iteração resolvi isso com um if dentro
+da condição que pausava os processos, e coloquei alguns SIGCONT sempre que um processo pausava pra me certificar
+que ao menos um estaria rodando sempre. Fiz uma condição nos dois processos pra acordar o outro se o vetor estivesse
+muito cheio ou muito vazio pra aumentar a concorrencia, caso contrario eles ficam alternando e só acordam quando
+um pausa e sinaliza ao outro para continuar.
+Incrivel também como um print afeta a concorrencia, o consumidor pracaticamente não é pausado porque imprime o que pega da memória enquanto o produtor não tem print praticamente. Outro detalhe é que eu estava imprimindo quando os processos
+eram pausados, e no tempo de imprimir a condição do if já havia mudado. Por exemplo, o consumidor via que nao havia 
+elementos no vetor, mas o produtor estava produzindo, no tempo que o consumidor imprimia que ia pausar, o produtor 
+pausava e o pragrama ficava todo pausado.
+
