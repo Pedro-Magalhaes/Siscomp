@@ -5,17 +5,17 @@
 void handler(int sinal);
 int main (void)
 {
-	int a,b;
-	int soma,dif,mult,div;
+	float a,b;
+	float soma,dif,mult,div;
 	signal(SIGFPE, handler);
 	puts ("Digite dois numeros:");
-	scanf("%d",&a);
-	scanf("%d",&b);
+	scanf("%f",&a);
+	scanf("%f",&b);
 	soma=a+b;
 	dif=a-b;
 	mult=a*b;
 	div=a/b;
-	printf("soma: %d,sub: %d,mult: %d,Div: %d\n",soma,dif,mult,div);
+	printf("soma: %f,sub: %f,mult: %f,Div: %f\n",soma,dif,mult,div);
 	
 	return 0;
 }

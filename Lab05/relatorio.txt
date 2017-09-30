@@ -1,0 +1,432 @@
+ALUNO: Pedro Felipe Santos Magalhães – 1611074
+
+
+QUESTÃO 1) Faça um programa que crie 2 processos filho e alterne a execução dos filhos. Após 10 trocas
+de contexto, o processo pai mata os processos filho.
+OBS: Os processos filho são formados por loops eternos
+-----------------------------------------------------
+ARQUIVO.C
+/*lab01.c*/
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#define EVER ;;
+#define FILHOS 2
+
+
+int main (int argc, char *argv[])
+{	
+	int pid[2];
+	int i;
+	int proximo;
+	for(i=0;i<FILHOS;i++)
+	{
+		if ((pid[i] = fork()) < 0)
+		{
+			fprintf(stderr, "Erro ao criar filho\n");
+			exit(-1);
+		}
+		if (pid[i] == 0)/* child */
+		{ 
+			for(EVER){printf("Filho %d\n",i);sleep(1);}
+		}
+	}
+	
+	
+		for(i=0;i<10;i++)
+		{
+			proximo=i%FILHOS;
+			printf("Vou trocar filhos\n");
+			kill(pid[FILHOS-proximo-1],SIGSTOP);
+			kill(pid[proximo],SIGCONT);
+			sleep(2);
+		}
+
+		for(i=0;i<FILHOS;i++)
+		{
+			kill(pid[i],SIGINT);
+		}
+		printf("Filhos interrompidos\n");
+
+		
+	
+	return 0;
+}
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ gcc -Wall lab01.c 
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ ./a.out
+
+
+-----------------------------------------------------
+RESULTADO
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ ./a.out
+Vou trocar filhos
+Filho 0
+Filho 0
+Vou trocar filhos
+Filho 1
+Filho 1
+Vou trocar filhos
+Filho 0
+Filho 0
+Vou trocar filhos
+Filho 1
+Filho 1
+Vou trocar filhos
+Filho 0
+Filho 0
+Vou trocar filhos
+Filho 1
+Filho 1
+Vou trocar filhos
+Filho 0
+Filho 0
+Vou trocar filhos
+Filho 1
+Filho 1
+Vou trocar filhos
+Filho 0
+Filho 0
+Vou trocar filhos
+Filho 1
+Filho 1
+Filhos interrompidos
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ 
+
+
+-----------------------------------------------------
+CONCLUSÃO
+O programa intercala os processos a cada 1 segundo, parando o que estava sendo executado com o kill SIGSTOP e ativa o outro com o SIGCONT. Depois de 10 vezes ele interrompe os dois de retorna
+
+
+
+/**********************************************************/
+
+
+
+QUESTÃO 2) Faça um programa que leia 2 números inteiros e imprima o resultado das 4 operações
+básicas sobre estes 2 números.
+Verifique o que acontece se o 2º. número da entrada for 0 (zero).
+Capture o sinal de erro de floating point (SIGFPE) e repita a experiência anterior.
+Altere seu programa para ler e realizar as operações aritméticas com números reais.
+-----------------------------------------------------
+ARQUIVO.C
+/*lab02.c*/
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <stdlib.h>
+void handler(int sinal);
+int main (void)
+{
+	float a,b;
+	float soma,dif,mult,div;
+	signal(SIGFPE, handler);
+	puts ("Digite dois numeros:");
+	scanf("%f",&a); //trocar para %d para inteiros
+	scanf("%f",&b);
+	soma=a+b;
+	dif=a-b;
+	mult=a*b;
+	div=a/b;
+	printf("soma: %f,sub: %f,mult: %f,Div: %f\n",soma,dif,mult,div);//%d para int
+	
+	return 0;
+}
+void handler(int sinal)
+{
+	printf ("Segundo operando igual a Zero!\n");
+	exit(-1);
+
+}
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ gcc -Wall lab02.c 
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ ./a.out
+
+-----------------------------------------------------
+RESULTADO
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ ./a.out
+Digite dois numeros:
+4 7
+soma: 11,sub: -3,mult: 28,Div: 0
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ ./a.out
+Digite dois numeros:
+4 2
+soma: 6,sub: 2,mult: 8,Div: 2
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ ./a.out
+Digite dois numeros:
+2 0
+Segundo operando igual a Zero!
+
+/*** agora com floats ***/
+
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ ./a.out
+Digite dois numeros:
+4 2
+soma: 6.000000,sub: 2.000000,mult: 8.000000,Div: 2.000000
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ ./a.out
+Digite dois numeros:
+4 0
+soma: 4.000000,sub: 4.000000,mult: 0.000000,Div: inf
+
+
+-----------------------------------------------------
+CONCLUSÃO
+Com a função handler eu consegui interromper a exceção lançada pela cpu 
+e fiz o programa abortar.
+Com numeros float a função não é acionada e o programa roda, só que o resultado da divisão da inf.
+os registradores de ponto flutuante tratam a divisão por 0?
+
+
+
+/**********************************************************/
+
+
+
+QUESTÃO 3) Faça um programa para monitorar e informar o preço de chamadas telefônicas. O programa
+deverá ser executado em background.
+O início e o término de uma chamada são informados através dos sinais SIGUSR1 e SIGUSR2,
+respectivamente.
+O custo da ligação é de 2 centavos por segundo, para ligações de até 1 minuto ou de 1
+centavo por segundo a partir do 2º. minuto, ou seja, uma ligação de 1m30s custa R$1,50.
+-----------------------------------------------------
+ARQUIVO.C
+/*lab03.c*/
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/wait.h>
+void handlerInicio(int sinal);
+void handlerFinal(int sinal);
+time_t tempo;
+int main (void)
+{
+
+signal(SIGUSR1, handlerInicio);
+signal(SIGUSR2, handlerFinal);
+while(1)
+{}
+
+
+return 0;
+}
+void handlerInicio(int sinal)
+{
+	printf ("Chamada iniciada\n");
+	tempo=time(NULL);
+
+}
+void handlerFinal(int sinal)
+{
+	time_t tempoFinal=time(NULL);
+	
+	float tempoChamada = (float)difftime(tempoFinal,tempo); 
+	float valor;
+	
+	if(tempoChamada<=60)
+		valor=(tempoChamada*2)/100;
+	else
+		valor=120+(tempoChamada-60)/100;
+	printf("Chamada terminada, Valor a ser cobrado: R$%f\n",valor);
+	tempo=0;
+
+}
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ gcc -Wall lab03.c 
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ ./a.out &
+
+
+-----------------------------------------------------
+RESULTADO
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ ./a.out &
+[1] 13126
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ kill -s SIGUSR1 13126
+Chamada iniciada
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ kill -s SIGUSR2 13126
+Chamada terminada, Valor a ser cobrado: R$0.280000
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ kill -s SIGUSR1 13126
+Chamada iniciada
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ kill -s SIGUSR2 13126
+Chamada terminada, Valor a ser cobrado: R$0.120000
+
+
+-----------------------------------------------------
+CONCLUSÃO
+O programa captura o sinal USR1 para iniciar a chamada, o tempo é contabilizado.
+Quando o sinal USR2 é recebido o programa calcula o tempo decorrido desde o
+tratamento do sinal USR1 e imprime na tela o valor (tudo dentro da função de tratamento)
+
+/**********************************************************/
+
+
+
+QUESTÃO 4) Elabore três programas I/O bound que não terminem (loop de mensagens no vídeo).
+Elabore um programa que seja capaz de executar os 3 programas indicados anteriormente
+e que simule o compartilhamento da CPU entre os 3 processos com escalonamento RoundRobin
+com uma fatia de tempo de 1 segundo para o primeiro processo e de 2 segundos para
+os demais processos. Execute os programas e relate o que aconteceu.
+-----------------------------------------------------
+ARQUIVO.C
+/*lab04.c*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <string.h>
+#include <signal.h>
+
+#define FILHOS 3
+#define EVER ;;
+
+int main (int argc, char *argv[])
+{
+	int pid[FILHOS],i;
+	char comando[100]="./spammer_";
+	
+	for(i=0;i<FILHOS;i++)
+		pid[i]=0;
+		
+	for(i=0;i<FILHOS;i++)
+	{
+		pid[i]=fork();
+		if(pid[i]==0)
+		{
+			char numero_processo[21];
+			char *argv[3];
+			argv[3]=NULL;
+			sprintf(numero_processo,"%d",i+1);//passando i para char
+			strcat(comando,numero_processo);//tenho o comando preciso do parametro
+			argv[0]=strdup(comando);
+			argv[1]=strdup(numero_processo);
+			execvp(argv[0],argv);
+			printf("erro,nao executei o comando filho<%d>\n",i);
+			exit(1);
+		}
+		printf("filho<%d> criado\n",i);
+		kill(pid[i],SIGSTOP);//todos começam parados
+		
+	}
+	i=0;
+	for(EVER)
+	{
+		printf("acordando filho<%d>\n",i+1);
+		kill(pid[i],SIGCONT);
+		if(i==0)
+		{
+			sleep(1);
+		}
+		else
+		{
+			sleep(2);
+		}
+		kill(pid[i],SIGSTOP);
+		i=(i+1)%3;
+	}
+	
+	return 0;
+}
+
+/******** spammer.c  *********/
+
+#include <stdio.h>
+#include<stdlib.h>
+#include <unistd.h>
+
+#define EVER ;;
+
+int main (int argc, char *argv[])
+{
+	if(argc<2)
+	{
+		printf("erro, nenhum parametro recebido\n");
+		exit(-1);
+	}
+	for (EVER)
+	{
+		printf("Oi, eu sou o programa do processo<%d>\n",atoi(argv[1]));
+		sleep(1);
+	}
+	return 0;
+}
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ gcc -Wall -o spammer_1 spammer.c
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ gcc -Wall -o spammer_2 spammer.c
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ gcc -Wall -o spammer_3 spammer.c
+
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ ./a.out
+
+
+-----------------------------------------------------
+RESULTADO
+pedro@debianPedro:~/Documentos/PUC/Siscomp/Laboratorios/Lab05$ ./a.out 
+filho<1> criado
+filho<2> criado
+filho<3> criado
+acordando filho<1>
+Oi, eu sou o programa do processo<1>
+acordando filho<2>
+Oi, eu sou o programa do processo<2>
+Oi, eu sou o programa do processo<2>
+acordando filho<3>
+Oi, eu sou o programa do processo<3>
+Oi, eu sou o programa do processo<3>
+acordando filho<1>
+Oi, eu sou o programa do processo<1>
+acordando filho<2>
+Oi, eu sou o programa do processo<2>
+Oi, eu sou o programa do processo<2>
+acordando filho<3>
+Oi, eu sou o programa do processo<3>
+Oi, eu sou o programa do processo<3>
+acordando filho<1>
+Oi, eu sou o programa do processo<1>
+acordando filho<2>
+Oi, eu sou o programa do processo<2>
+Oi, eu sou o programa do processo<2>
+acordando filho<3>
+Oi, eu sou o programa do processo<3>
+Oi, eu sou o programa do processo<3>
+acordando filho<1>
+Oi, eu sou o programa do processo<1>
+acordando filho<2>
+Oi, eu sou o programa do processo<2>
+Oi, eu sou o programa do processo<2>
+acordando filho<3>
+Oi, eu sou o programa do processo<3>
+Oi, eu sou o programa do processo<3>
+acordando filho<1>
+Oi, eu sou o programa do processo<1>
+acordando filho<2>
+Oi, eu sou o programa do processo<2>
+Oi, eu sou o programa do processo<2>
+acordando filho<3>
+Oi, eu sou o programa do processo<3>
+Oi, eu sou o programa do processo<3>
+acordando filho<1>
+Oi, eu sou o programa do processo<1>
+acordando filho<2>
+Oi, eu sou o programa do processo<2>
+Oi, eu sou o programa do processo<2>
+
+
+-----------------------------------------------------
+CONCLUSÃO
+Tive algum trabalho fazendo o exec funcionar, mas aparentemente está funcionando corretamente.
+Compilei o programa spammer em 3 executaveis diferentes para serem chamados por 3 processos diferentes.
+Eu crio tres filhos, cada um fica com o id igual ao numero que a variavel de controle do loop estava, o processo chama o programa spammer passando seu id para que seja impresso na tela de qual processo é aquela instancia do spammer.
+
+
