@@ -1,0 +1,5 @@
+valor lido = 1
+valor lido = 2
+valor lido = 3
+valor lido = 4
+valor lido = 5
