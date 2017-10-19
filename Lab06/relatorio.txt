@@ -1,0 +1,255 @@
+ALUNO: Pedro Felipe Santos Magalhães – 1611074
+
+
+QUESTÃO 1) Faça um programa que crie 2 processos que se comunicam via 
+pipe. O pai lê do pipe enquanto o filho escreve no pipe. Exiba o
+resultado do que foi escrito e lido.
+-----------------------------------------------------
+ARQUIVO.C
+
+/*lab01.c*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+
+int main (void)
+{
+	int fd[2];
+	int i;
+	int aux;
+	pipe(fd);
+	if (fork()==0) //filho
+	{
+		close(fd[0]);
+		for(i=0;i<10;i++)
+		{
+			aux=i*10;
+			write(fd[1],&aux,sizeof(int));
+		}
+			
+	}else{
+		
+		close(fd[1]);
+		for(i=0;i<10;i++)
+		{
+			read(fd[0],&aux,sizeof(int));
+			printf("numero lido %d\n",aux);
+		}
+	
+	}
+	
+	
+	return 0;
+}
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+c1611074@ramos ~/Documents/pedro/Siscomp/Lab06$gcc -Wall lab01.c -o l01
+c1611074@ramos ~/Documents/pedro/Siscomp/Lab06$./l01 
+
+-----------------------------------------------------
+RESULTADO
+c1611074@ramos ~/Documents/pedro/Siscomp/Lab06$./l01 
+numero lido 0
+numero lido 10
+numero lido 20
+numero lido 30
+numero lido 40
+numero lido 50
+numero lido 60
+numero lido 70
+numero lido 80
+numero lido 90
+
+
+
+-----------------------------------------------------
+CONCLUSÃO
+Consegui criar um caminho de comunicação entre o pai e filho 
+sem precisar criar memoria compartilhada. O pai lê do pipe o que o
+filho escreve de forma sincronizada.
+
+
+/**********************************************************/
+
+
+
+QUESTÃO 2) Faça um programa para redirecionar a entrada
+e a saída, lendo os dados de um arquivo e
+gerando a saída em outro.
+-----------------------------------------------------
+ARQUIVO.C
+
+/*lab02.c*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+int main (void)
+{
+	int fd,fd2;
+	int retorno;
+	int valorLido;
+	if ((fd = open("dados.txt", O_RDONLY))==-1)
+	{
+		perror("Error open(dados)");
+		return -1;
+	}
+	
+	if ((fd2 = open("saida.txt", O_WRONLY | O_CREAT))==-1)
+	{
+		perror("Error open(saida)");
+		return -1;
+	}
+	
+	
+	if((retorno = dup2(fd,0))==-1)
+	{
+		perror("Error open()");
+		return -1;
+		
+	}
+	
+	if((retorno = dup2(fd2,1))==-1)
+	{
+		perror("Error open()");
+		return -1;
+		
+	}
+	
+	while(scanf("%d",&valorLido)==1)
+		printf("valor lido = %d\n",valorLido);
+	return 0;
+}
+
+/*	dados.txt	*/
+1
+2
+3
+4
+5
+
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+c1611074@ramos ~/Documents/pedro/Siscomp/Lab06$gcc -Wall lab02.c -o l02
+c1611074@ramos ~/Documents/pedro/Siscomp/Lab06$./l02
+
+-----------------------------------------------------
+RESULTADO
+Como o program escreve um arquivo não há saída no console:
+
+arquivo gerado: saida.txt
+valor lido = 1
+valor lido = 2
+valor lido = 3
+valor lido = 4
+valor lido = 5
+
+
+-----------------------------------------------------
+CONCLUSÃO
+Nesse exercicio trocamos as entradas e saidas padrão do programa por 
+arquivos de texto. assim o programa lê diretamente de um arquivo e gera a saida em outro.
+
+
+
+/**********************************************************/
+
+
+
+QUESTÃO 3) aça um programa para criar um pipe e
+executar dois processos que são utilitários do Unix
+que se comuniquem através do pipe criado (a shell
+faz isso).
+
+-----------------------------------------------------
+ARQUIVO.C
+
+/*lab03.c*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+int main (void)
+{
+	int fd[2];
+	int retorno;
+	
+	
+	pipe(fd);
+	
+	if (fork()==0) //filho
+	{
+		close(fd[0]);
+		if((retorno=dup2(fd[1],1))==-1)
+		{
+			perror("Erro mudando stdout filho");
+			return -1;
+		}
+		const char path[]= "/bin/ls";
+		const char arg[]= "/bin/ls";
+		execl(path,arg,NULL);
+		printf("alo\n");
+			
+	}else{
+		close(fd[1]);
+		if((retorno=dup2(fd[0],0))==-1)
+		{
+			perror("Erro mudando stdout filho");
+			return -1;
+		}
+		const char path[]= "/bin/cat";
+		const char arg[]= "/bin/cat";
+		execl(path,arg,NULL);
+		
+	}
+	
+	return 0;
+}
+
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+
+c1611074@ramos ~/Documents/pedro/Siscomp/Lab06$gcc -Wall lab03.c -o l03
+c1611074@ramos ~/Documents/pedro/Siscomp/Lab06$./l03
+
+
+-----------------------------------------------------
+RESULTADO
+
+c1611074@ramos ~/Documents/pedro/Siscomp/Lab06$./l03
+a.out
+dados.txt
+l01
+l02
+l03
+lab01.c
+lab02.c
+lab03.c
+relatorio.txt
+saida.txt
+c1611074@ramos ~/Documents/pedro/Siscomp/Lab06$ls
+a.out      l01  l03      lab02.c  relatorio.txt
+dados.txt  l02  lab01.c  lab03.c  saida.txt
+c1611074@ramos ~/Documents/pedro/Siscomp/Lab06$
+
+
+
+-----------------------------------------------------
+CONCLUSÃO
+Consegui redirecionar a saida do filho para escrever no pipe
+enquanto redirecionei a entrada padrão do pai para ler do pipe.
+Em seguida fiz exec() nos dois e o programa pai pegou como entrada
+o resultado da saida do programa executado no filho
+
+/**********************************************************/
+
+
