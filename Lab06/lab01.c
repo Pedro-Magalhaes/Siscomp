@@ -14,7 +14,8 @@ int main (void)
 		close(fd[0]);
 		for(i=0;i<10;i++)
 		{
-			aux=i*10;
+			printf("Digtie numero: \n");
+			scanf("%d",&aux);
 			write(fd[1],&aux,sizeof(int));
 		}
 			
