@@ -1,0 +1,358 @@
+ALUNO: Pedro Felipe Santos Magalhães – 1611074
+
+
+QUESTÃO 1)  Compile e Execute os códigos apresentados
+nos slides anteriores. Explicando os códigos
+e as diferenças entre FIFO com leitura/ escrita 
+bloqueante e não bloqueante.
+-----------------------------------------------------
+ARQUIVO.C
+
+/********  SEM BLOQUEIO  ***************/
+/* FifoReaderNB.c */
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+#define OPENMODE (O_RDONLY | O_NONBLOCK)  // //UNICA DIFERENÇA
+#define FIFO "minhaFifo"
+int main (void)
+{
+    int fpFIFO;
+    char ch;
+    if (access(FIFO, F_OK) == -1)
+    {
+        if (mkfifo (FIFO, S_IRUSR | S_IWUSR) != 0)
+        {
+            fprintf (stderr, "Erro ao criar FIFO %s\n", FIFO);
+            return -1;
+        }
+    }
+    puts ("Abrindo FIFO");
+    if ((fpFIFO = open (FIFO, OPENMODE)) < 0)
+    {
+        fprintf (stderr, "Erro ao abrir a FIFO %s\n", FIFO);
+        return -2;
+    }
+    puts ("Começando a ler...");
+    while (read (fpFIFO, &ch, sizeof(ch)) > 0)
+    putchar (ch);
+    puts ("Fim da leitura");
+    close (fpFIFO);
+    return 0;
+}
+
+/* FifoWriterNB.c */
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+#define OPENMODE (O_WRONLY | O_NONBLOCK) //UNICA DIFERENÇA
+#define FIFO "minhaFifo"
+int main (void)
+    {
+    int fpFIFO;
+    char mensagem[] = "Melancia sem caroço";
+    if (access(FIFO, F_OK) == -1)
+    {
+        if (mkfifo (FIFO, S_IRUSR | S_IWUSR) != 0)
+        {
+            fprintf (stderr, "Erro ao criar FIFO %s\n", FIFO);
+            return -1;
+        }
+    }
+    puts ("Abrindo FIFO");
+    if ((fpFIFO = open (FIFO, OPENMODE)) < 0)
+    {
+        fprintf (stderr, "Erro ao abrir a FIFO %s\n", FIFO);
+        return -2;
+    }
+    puts ("Começando a escrever...");
+    write(fpFIFO, mensagem, strlen(mensagem));
+    puts ("Fim da escrita");
+    close (fpFIFO);
+    return 0;
+}
+
+/********  COM BLOQUEIO  ***************/
+/* FifoReaderB.c */
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+#define OPENMODE (O_RDONLY)  //UNICA DIFERENÇA!!!!!
+#define FIFO "minhaFifo"
+int main (void)
+{
+    int fpFIFO;
+    char ch;
+    if (access(FIFO, F_OK) == -1)
+    {
+        if (mkfifo (FIFO, S_IRUSR | S_IWUSR) != 0)
+        {
+            fprintf (stderr, "Erro ao criar FIFO %s\n", FIFO);
+            return -1;
+        }
+    }
+    puts ("Abrindo FIFO");
+    if ((fpFIFO = open (FIFO, OPENMODE)) < 0)
+    {
+        fprintf (stderr, "Erro ao abrir a FIFO %s\n", FIFO);
+        return -2;
+    }
+    puts ("Começando a ler...");
+    while (read (fpFIFO, &ch, sizeof(ch)) > 0)
+    putchar (ch);
+    puts ("Fim da leitura");
+    close (fpFIFO);
+    return 0;
+}
+
+/* FifoWriterB.c */
+
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+#define OPENMODE (O_WRONLY)  //UNICA DIFERENÇA !!
+#define FIFO "minhaFifo"
+int main (void)
+    {
+    int fpFIFO;
+    char mensagem[] = "Melancia sem caroço";
+    if (access(FIFO, F_OK) == -1)
+    {
+        if (mkfifo (FIFO, S_IRUSR | S_IWUSR) != 0)
+        {
+            fprintf (stderr, "Erro ao criar FIFO %s\n", FIFO);
+            return -1;
+        }
+    }
+    puts ("Abrindo FIFO");
+    if ((fpFIFO = open (FIFO, OPENMODE)) < 0)
+    {
+        fprintf (stderr, "Erro ao abrir a FIFO %s\n", FIFO);
+        return -2;
+    }
+    puts ("Começando a escrever...");
+    write(fpFIFO, mensagem, strlen(mensagem));
+    puts ("Fim da escrita");
+    close (fpFIFO);
+    return 0;
+}
+
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+//sem bloqueio
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ gcc -Wall -o NBW FifoWriterNB.c 
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ gcc -Wall -o NBR FifoReaderNB.c
+
+//com bloqueio
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ gcc -Wall -o BR FifoReaderB.c 
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ gcc -Wall -o BW FifoWriterB.c 
+
+-----------------------------------------------------
+RESULTADO
+
+/********  SEM BLOQUEIO  ***************/
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ ./NBW
+Abrindo FIFO
+Erro ao abrir a FIFO minhaFifo
+
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ ./NBR
+Abrindo FIFO
+Começando a ler...
+Fim da leitura
+
+
+/********  COM BLOQUEIO  ***************/
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ ./BW &
+[1] 12509
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ Abrindo FIFO
+./BR
+Abrindo FIFO
+Começando a ler...
+Começando a escrever...
+Fim da escrita
+Melancia sem caroçoFim da leitura
+[1]+  Done                    ./BW
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ 
+
+
+
+
+-----------------------------------------------------
+CONCLUSÃO
+Bom o código das duas implementações só difere na flag definada na macro OPENMODE,
+tanto na reader quanto na writer, inicialmente testamos se o programa consegue acessar
+a FIFO, se não conseguir ele tenta criar a FIFO. Em seguida o Reader abre a FIFO para 
+leitura e o writer para escrirta (Nesse ponto o não bloqueante adiciona a flag O_NONBLOCK)
+em seguida tudo funciona como em um Pipe.
+
+
+/**********************************************************/
+
+
+
+QUESTÃO 2) Abra duas seções de terminais
+ Na primeira, execute um programa que fica
+em loop lendo de uma FIFO para depois
+escrever na saída padrão (tela)
+ Na segunda, execute um programa que fica
+lendo da entrada padrão (teclado) e depois
+escreve na mesma FIFO
+-----------------------------------------------------
+ARQUIVO.C
+
+/*ReaderLab02.c*/
+
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+#define OPENMODE (O_RDONLY)
+#define FIFO "minhaFifo"
+int main (void)
+{
+    int fpFIFO;
+    char msg[50];
+    if (access(FIFO, F_OK) == -1)
+    {
+        if (mkfifo (FIFO, S_IRUSR | S_IWUSR) != 0)
+        {
+            fprintf (stderr, "Erro ao criar FIFO %s\n", FIFO);
+            return -1;
+        }
+    }
+    puts ("Abrindo FIFO");
+    if ((fpFIFO = open (FIFO, OPENMODE)) < 0)
+    {
+        fprintf (stderr, "Erro ao abrir a FIFO %s\n", FIFO);
+        return -2;
+    }
+    puts ("Começando a ler...");
+    while (read (fpFIFO, msg, 50) > 0)
+    {
+        printf("%s\n",msg);
+    }
+    
+    puts ("Fim da leitura");
+    close (fpFIFO);
+    return 0;
+}
+
+/*	WriterLab02.c	*/
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+#define OPENMODE (O_WRONLY)
+#define FIFO "minhaFifo"
+int main (void)
+    {
+    int fpFIFO;
+    char mensagem[50] = "Melancia sem caroço";
+    if (access(FIFO, F_OK) == -1)
+    {
+        if (mkfifo (FIFO, S_IRUSR | S_IWUSR) != 0)
+        {
+            fprintf (stderr, "Erro ao criar FIFO %s\n", FIFO);
+            return -1;
+        }
+    }
+    puts ("Abrindo FIFO");
+    if ((fpFIFO = open (FIFO, OPENMODE)) < 0)
+    {
+        fprintf (stderr, "Erro ao abrir a FIFO %s\n", FIFO);
+        return -2;
+    }
+    //puts ("Começando a escrever...");
+    while(strcmp(mensagem,"done")!=0)
+    {
+        printf("Digite algo, termina com 'done'\n");
+        scanf("%s",mensagem);
+        write(fpFIFO, mensagem, strlen(mensagem)+1);
+
+    }
+    
+    puts ("Fim da escrita");
+    close (fpFIFO);
+    return 0;
+}
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ gcc -Wall -o Wl02 WriterLab02.c 
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ gcc -Wall -o Rl02 ReaderLab02.c
+
+-----------------------------------------------------
+RESULTADO
+/**** CONSOLE WRITER (Lê e escreve no fifo) ****/
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ ./Wl02 
+Abrindo FIFO
+Digite algo, termina com 'done'
+Ola
+Digite algo, termina com 'done'
+ola
+Digite algo, termina com 'done'
+so
+Digite algo, termina com 'done'
+posso
+Digite algo, termina com 'done'
+escrever
+Digite algo, termina com 'done'
+sem 
+Digite algo, termina com 'done'
+espaco
+Digite algo, termina com 'done'
+\n
+Digite algo, termina com 'done'
+done
+Fim da escrita
+
+/**** CONSOLE Reader (Lê fifo e escreve na tela) ****/
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ ./Rl02 
+Abrindo FIFO
+Começando a ler...
+Ola
+ola
+so
+posso
+escrever
+sem
+espaco
+\n
+done
+Fim da leitura
+
+
+-----------------------------------------------------
+CONCLUSÃO
+Consegui fazer um programa ler o que foi digitado no console e passar isso pro fifo
+em seguida o programa que lia o fifo escrevia na tela o que foi lido e aguardava
+o writer escrever mais. Fiz leitura somente de palavras sem espaço pra simplificar
+(usei scanf("%s"))
+
+
+/**********************************************************/
+
+
