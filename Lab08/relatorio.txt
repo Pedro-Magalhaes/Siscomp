@@ -144,142 +144,164 @@ impressor deve imprimi-lo na saída padrão.
 -----------------------------------------------------
 ARQUIVO.C
 
-/*ReaderLab02.c*/
+/*Lab02.c*/
 
-#include <stdio.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <string.h>
+#include <sys/sem.h>
 #include <unistd.h>
-#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
 
-#define OPENMODE (O_RDONLY)
-#define FIFO "minhaFifo"
-int main (void)
+#define EVER ;;
+#define BUFFER 16
+
+union semun
 {
-    int fpFIFO;
-    char msg[50];
-    if (access(FIFO, F_OK) == -1)
-    {
-        if (mkfifo (FIFO, S_IRUSR | S_IWUSR) != 0)
-        {
-            fprintf (stderr, "Erro ao criar FIFO %s\n", FIFO);
-            return -1;
-        }
-    }
-    puts ("Abrindo FIFO");
-    if ((fpFIFO = open (FIFO, OPENMODE)) < 0)
-    {
-        fprintf (stderr, "Erro ao abrir a FIFO %s\n", FIFO);
-        return -2;
-    }
-    puts ("Começando a ler...");
-    while (read (fpFIFO, msg, 50) > 0)
-    {
-        printf("%s\n",msg);
-    }
-    
-    puts ("Fim da leitura");
-    close (fpFIFO);
-    return 0;
+	int	val;
+	struct semid_ds *buf;
+	ushort *array;
+};
+// inicializa o valor do semáforo
+int setSemValue(int semId);
+// remove o semáforo
+void delSemValue( int semId);
+// operação P
+int semaforoP( int semId);
+//operação V
+int semaforoV( int semId);
+
+int main ( int argc, char* argv[])
+{
+	int i;
+	int	semId;
+	int pid,segmento;
+	int *vetor;
+	
+	// aloca a memória compartilhada
+	segmento = shmget (IPC_PRIVATE, sizeof (int)*BUFFER+1, IPC_CREAT | 											IPC_EXCL | S_IRUSR | S_IWUSR);
+	// associa a memória compartilhada ao processo
+	vetor = (int *) shmat (segmento, 0, 0);
+	vetor[16]='\n'; //soh pra pular linha
+		semId = semget (8752, 1, 0666 | IPC_CREAT);
+		if (semId != 0)
+		{
+			setSemValue(semId);
+		}
+		else
+		{
+			printf("saindo erro, semId= %d \n",semId);
+			exit(-1);
+		}
+			
+
+	if((pid=fork())==0) //filho-produtor
+	{
+		for(EVER)
+		{		
+			semaforoP(semId);
+			for(i=0;i<BUFFER;i++)
+			{
+				vetor[i]=getchar ();
+				if(vetor[i]=='\n')
+				{
+					i--;
+					continue;
+				}
+			}
+			semaforoV(semId);
+			sleep (rand() %2);
+		}
+	}
+	else
+	{//pai-consumidor
+		for(EVER)
+		{
+			semaforoP(semId);
+			for(i=0;i<BUFFER+1;i++)
+			{
+				putchar(vetor[i]);
+			}
+			fflush(stdout);
+			semaforoV(semId);
+			sleep (rand() %2);
+			
+		}
+	}
+	return 0;
+}
+int setSemValue(int semId)
+{
+	union semun semUnion;
+	semUnion.val = 1;
+	return semctl(semId, 0, SETVAL, semUnion);
+}
+void delSemValue(int semId)
+{
+	union semun semUnion;
+	semctl(semId, 0, IPC_RMID, semUnion);
+}
+int semaforoP( int semId)
+{
+	struct
+	sembuf semB;
+	semB.sem_num = 0;
+	semB.sem_op = -	1;
+	semB.sem_flg = SEM_UNDO;
+	semop(semId, &semB, 1);
+	return	0;
+}
+int semaforoV(int semId)
+{
+	struct sembuf semB;
+	semB.sem_num = 0;
+	semB.sem_op = 1;
+	semB.sem_flg = SEM_UNDO;
+	semop(semId, &semB, 1);
+	return	0;
 }
 
-/*	WriterLab02.c	*/
-#include <stdio.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-
-#define OPENMODE (O_WRONLY)
-#define FIFO "minhaFifo"
-int main (void)
-    {
-    int fpFIFO;
-    char mensagem[50] = "Melancia sem caroço";
-    if (access(FIFO, F_OK) == -1)
-    {
-        if (mkfifo (FIFO, S_IRUSR | S_IWUSR) != 0)
-        {
-            fprintf (stderr, "Erro ao criar FIFO %s\n", FIFO);
-            return -1;
-        }
-    }
-    puts ("Abrindo FIFO");
-    if ((fpFIFO = open (FIFO, OPENMODE)) < 0)
-    {
-        fprintf (stderr, "Erro ao abrir a FIFO %s\n", FIFO);
-        return -2;
-    }
-    //puts ("Começando a escrever...");
-    while(strcmp(mensagem,"done")!=0)
-    {
-        printf("Digite algo, termina com 'done'\n");
-        scanf("%s",mensagem);
-        write(fpFIFO, mensagem, strlen(mensagem)+1);
-
-    }
-    
-    puts ("Fim da escrita");
-    close (fpFIFO);
-    return 0;
-}
 -----------------------------------------------------
 
 COMPILAÇÃO E EXECUÇÃO
-pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ gcc -Wall -o Wl02 WriterLab02.c 
-pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ gcc -Wall -o Rl02 ReaderLab02.c
+
 
 -----------------------------------------------------
 RESULTADO
-/**** CONSOLE WRITER (Lê e escreve no fifo) ****/
-pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ ./Wl02 
-Abrindo FIFO
-Digite algo, termina com 'done'
-Ola
-Digite algo, termina com 'done'
-ola
-Digite algo, termina com 'done'
-so
-Digite algo, termina com 'done'
-posso
-Digite algo, termina com 'done'
-escrever
-Digite algo, termina com 'done'
-sem 
-Digite algo, termina com 'done'
-espaco
-Digite algo, termina com 'done'
-\n
-Digite algo, termina com 'done'
-done
-Fim da escrita
 
-/**** CONSOLE Reader (Lê fifo e escreve na tela) ****/
-pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab07$ ./Rl02 
-Abrindo FIFO
-Começando a ler...
-Ola
-ola
-so
-posso
-escrever
-sem
-espaco
-\n
-done
-Fim da leitura
+-----------------------------------------------------
+CONCLUSÃO
+
+
+/**********************************************************/
+ 3) Faça programas para alterar um valor de 
+uma variável na memória compartilhada.
+Um programa soma 1 à variável e o outro 
+soma 5 à variável. Utilize semáforos para 
+alterar a variável (região crítica).
+-----------------------------------------------------
+ARQUIVO.C
+
+
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+
+
+-----------------------------------------------------
+RESULTADO
+
+
 
 
 -----------------------------------------------------
 CONCLUSÃO
-Consegui fazer um programa ler o que foi digitado no console e passar isso pro fifo
-em seguida o programa que lia o fifo escrevia na tela o que foi lido e aguardava
-o writer escrever mais. Fiz leitura somente de palavras sem espaço pra simplificar
-(usei scanf("%s"))
 
 
 /**********************************************************/
+
+
 
 
