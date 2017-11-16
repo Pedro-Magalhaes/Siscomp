@@ -1,0 +1,119 @@
+ALUNO: Pedro Felipe Santos Magalhães – 1611074
+
+
+
+QUESTÃO 1) Usando processos, escreva um programa C que 
+implemente o problema do produtor/consumidor. 
+Existem 2 consumidores.  O produtor e os 
+consumidores devem compartilhar os recursos do 
+processo (filas e demais dados). O produtor deve 
+produzir dados (números inteiros) a cada 1 
+segundo colocando-os em uma fila (buffer). Os 
+consumidores devem retirar dados da fila a cada 2 
+segundos. O tamanho máximo da fila deve ser de 
+8 elementos (MAXFILA) e tanto o produtor como 
+os dois consumidores devem produzir/consumir 
+64 elementos
+-----------------------------------------------------
+ARQUIVO.C
+/**Lab01.c **/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <sys/msg.h>
+#include <sys/ipc.h>
+#define MAXFILA 8
+#define MAXPRODUZIDO 64
+
+typedef struct mymsg {
+    long int    mtype;     /* message type */
+    int        	meu_int;  /* message */
+} mymsg;
+
+int main (void)
+{
+	
+
+	int pid_produtor,id_fila_msg;	
+	mymsg m;
+	struct msqid_ds buf;
+	m.mtype = 1; //sei la o que fazer com esse type
+	id_fila_msg = msgget(IPC_PRIVATE, IPC_CREAT | 0666);
+	
+	if(	msgctl(id_fila_msg,IPC_STAT,&buf) == -1)
+	{
+		printf("erro msgctl, saindo \n");
+		exit(-1);
+	}
+	buf.msg_qbytes = 8 * sizeof(m.meu_int);
+	if (msgctl(id_fila_msg,IPC_SET,&buf)==-1)
+	{
+		printf("erro setando msgctl, saindo \n");
+		exit(-1);
+	}
+	
+	pid_produtor=fork();	
+	if (pid_produtor != 0) {			
+		//consumidor 
+		int i,status;					
+		for(i=0;i<MAXPRODUZIDO;i++)
+		{	
+			sleep(2);
+			status = msgrcv( id_fila_msg, &m, sizeof(m.meu_int)
+, 1, 0); 
+			printf("Mensagem recebida, meu i eh %d , e i do produtor era %d , deveriam ser iguais. status: %d \n",i,m.meu_int,status);
+		}	
+	
+	} 
+	else { //produtor
+		
+		int i,status;
+		for(i=0;i<MAXPRODUZIDO;i++)
+		{
+			m.meu_int = i;
+			status = msgsnd( id_fila_msg, &m, sizeof(m.meu_int), 0);
+			printf("\n\nPRODUTOR: enviado %d, status: %d\n\n",m.meu_int,status);
+				
+			sleep(1);
+		}
+
+		printf("produtor acabou\n");
+	}
+	
+	return 0;
+}
+
+
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+
+c1611074@arpoador ~/Documents/pedro/Siscomp/Lab09$gcc -Wall -o l01 Lab01.c 
+c1611074@arpoador ~/Documents/pedro/Siscomp/Lab09$./l01
+
+-----------------------------------------------------
+RESULTADO
+/** só vou colocar parte da saida aqui pra não ficar gigante **/
+-----------------------------------------------------
+CONCLUSÃO
+
+--------------------------------------------------------------
+
+QUESTÃO 2) 
+-----------------------------------------------------
+ARQUIVO.C
+
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+
+
+-----------------------------------------------------
+RESULTADO
+
+-----------------------------------------------------
+CONCLUSÃO
