@@ -98,8 +98,110 @@ c1611074@arpoador ~/Documents/pedro/Siscomp/Lab09$./l01
 -----------------------------------------------------
 RESULTADO
 /** só vou colocar parte da saida aqui pra não ficar gigante **/
+
+c1611074@arpoador ~/Documents/pedro/Siscomp/Lab09$./l01
+
+
+PRODUTOR: enviado 0, status: 0
+
+
+
+PRODUTOR: enviado 1, status: 0
+
+Mensagem recebida, meu i eh 0 , e i do produtor era 0 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 2, status: 0
+
+
+
+PRODUTOR: enviado 3, status: 0
+
+Mensagem recebida, meu i eh 1 , e i do produtor era 1 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 4, status: 0
+
+
+
+PRODUTOR: enviado 5, status: 0
+
+Mensagem recebida, meu i eh 2 , e i do produtor era 2 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 6, status: 0
+
+
+
+PRODUTOR: enviado 7, status: 0
+
+Mensagem recebida, meu i eh 3 , e i do produtor era 3 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 8, status: 0
+
+
+
+PRODUTOR: enviado 9, status: 0 
+
+Mensagem recebida, meu i eh 4 , e i do produtor era 4 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 10, status: 0
+
+
+
+PRODUTOR: enviado 11, status: 0
+
+Mensagem recebida, meu i eh 5 , e i do produtor era 5 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 12, status: 0
+
+<<<<<<< ******** até aqui era assincrono e se torna sincrono ******>>>>>
+
+PRODUTOR: enviado 13, status: 0
+
+Mensagem recebida, meu i eh 6 , e i do produtor era 6 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 14, status: 0
+
+Mensagem recebida, meu i eh 7 , e i do produtor era 7 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 15, status: 0
+
+Mensagem recebida, meu i eh 8 , e i do produtor era 8 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 16, status: 0
+
+Mensagem recebida, meu i eh 9 , e i do produtor era 9 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 17, status: 0
+
+Mensagem recebida, meu i eh 10 , e i do produtor era 10 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 18, status: 0
+
+Mensagem recebida, meu i eh 11 , e i do produtor era 11 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 19, status: 0
+
+Mensagem recebida, meu i eh 12 , e i do produtor era 12 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 20, status: 0
+
+Mensagem recebida, meu i eh 13 , e i do produtor era 13 , deveriam ser iguais. status: 4 
+
 -----------------------------------------------------
 CONCLUSÃO
+Tive dificuldade pra ver como setar o numero de bytes que a fila aceita
 
 --------------------------------------------------------------
 
