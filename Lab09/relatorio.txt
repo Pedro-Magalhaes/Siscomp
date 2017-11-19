@@ -38,7 +38,7 @@ int main (void)
 {
 	
 
-	int pid_produtor,id_fila_msg;	
+	int pid_consumidor,pid_consumidor2,id_fila_msg,status;	
 	mymsg m;
 	struct msqid_ds buf;
 	m.mtype = 1; //sei la o que fazer com esse type
@@ -56,34 +56,50 @@ int main (void)
 		exit(-1);
 	}
 	
-	pid_produtor=fork();	
-	if (pid_produtor != 0) {			
-		//consumidor 
-		int i,status;					
-		for(i=0;i<MAXPRODUZIDO;i++)
+	pid_consumidor=fork();	
+	if (pid_consumidor == 0) {			
+		//consumidor 1 
+		int i;					
+		for(i=0;i<MAXPRODUZIDO/2;i++)
 		{	
 			sleep(2);
-			status = msgrcv( id_fila_msg, &m, sizeof(m.meu_int)
-, 1, 0); 
-			printf("Mensagem recebida, meu i eh %d , e i do produtor era %d , deveriam ser iguais. status: %d \n",i,m.meu_int,status);
+			status = msgrcv( id_fila_msg, &m, sizeof(m.meu_int), 0, 0); 
+			printf("CONSUMIDOR 1: Mensagem recebida %d \n ",m.meu_int);
 		}	
 	
 	} 
-	else { //produtor
+	else { //pai
 		
-		int i,status;
-		for(i=0;i<MAXPRODUZIDO;i++)
+		pid_consumidor2=fork();
+		if (pid_consumidor2 == 0) //consumidor 2
 		{
-			m.meu_int = i;
-			status = msgsnd( id_fila_msg, &m, sizeof(m.meu_int), 0);
-			printf("\n\nPRODUTOR: enviado %d, status: %d\n\n",m.meu_int,status);
-				
-			sleep(1);
+			int i,status;				
+			for(i=0;i<MAXPRODUZIDO/2;i++)
+			{	
+				sleep(2);
+				status = msgrcv( id_fila_msg, &m, sizeof(m.meu_int), 0, 0);
+										 
+				printf("CONSUMIDOR 2: Mensagem recebida %d \n ",m.meu_int);
+			}
 		}
+		else
+		{ //pai produtor
+			int i;
+			for(i=0;i<MAXPRODUZIDO;i++)
+			{
+				m.meu_int = i;
+				status = msgsnd( id_fila_msg, &m, sizeof(m.meu_int), 0);
+				printf("\n\nPRODUTOR: enviado %d, status: %d\n\n",m.meu_int,status);
+					
+				sleep(1);
+			}
 
-		printf("produtor acabou\n");
+			printf("produtor acabou\n");	
+			}
+		
 	}
-	
+	waitpid(-1,&status,0);
+	waitpid(-1,&status,0);
 	return 0;
 }
 
@@ -99,7 +115,7 @@ c1611074@arpoador ~/Documents/pedro/Siscomp/Lab09$./l01
 RESULTADO
 /** só vou colocar parte da saida aqui pra não ficar gigante **/
 
-c1611074@arpoador ~/Documents/pedro/Siscomp/Lab09$./l01
+c1611074@arpoador ~/Documents/pedro/Siscomp/Lab09$./l01 
 
 
 PRODUTOR: enviado 0, status: 0
@@ -108,16 +124,18 @@ PRODUTOR: enviado 0, status: 0
 
 PRODUTOR: enviado 1, status: 0
 
-Mensagem recebida, meu i eh 0 , e i do produtor era 0 , deveriam ser iguais. status: 4 
 
 
 PRODUTOR: enviado 2, status: 0
 
+CONSUMIDOR 1: Mensagem recebida 0 
+CONSUMIDOR 2: Mensagem recebida 1 
 
 
 PRODUTOR: enviado 3, status: 0
 
-Mensagem recebida, meu i eh 1 , e i do produtor era 1 , deveriam ser iguais. status: 4 
+ CONSUMIDOR 1: Mensagem recebida 2 
+ CONSUMIDOR 2: Mensagem recebida 3 
 
 
 PRODUTOR: enviado 4, status: 0
@@ -126,7 +144,8 @@ PRODUTOR: enviado 4, status: 0
 
 PRODUTOR: enviado 5, status: 0
 
-Mensagem recebida, meu i eh 2 , e i do produtor era 2 , deveriam ser iguais. status: 4 
+ CONSUMIDOR 1: Mensagem recebida 4 
+ CONSUMIDOR 2: Mensagem recebida 5 
 
 
 PRODUTOR: enviado 6, status: 0
@@ -135,16 +154,18 @@ PRODUTOR: enviado 6, status: 0
 
 PRODUTOR: enviado 7, status: 0
 
-Mensagem recebida, meu i eh 3 , e i do produtor era 3 , deveriam ser iguais. status: 4 
+ CONSUMIDOR 1: Mensagem recebida 6 
+ CONSUMIDOR 2: Mensagem recebida 7 
 
 
 PRODUTOR: enviado 8, status: 0
 
 
 
-PRODUTOR: enviado 9, status: 0 
+PRODUTOR: enviado 9, status: 0
 
-Mensagem recebida, meu i eh 4 , e i do produtor era 4 , deveriam ser iguais. status: 4 
+ CONSUMIDOR 1: Mensagem recebida 8 
+ CONSUMIDOR 2: Mensagem recebida 9 
 
 
 PRODUTOR: enviado 10, status: 0
@@ -153,55 +174,114 @@ PRODUTOR: enviado 10, status: 0
 
 PRODUTOR: enviado 11, status: 0
 
-Mensagem recebida, meu i eh 5 , e i do produtor era 5 , deveriam ser iguais. status: 4 
+ CONSUMIDOR 1: Mensagem recebida 10 
+ CONSUMIDOR 2: Mensagem recebida 11 
 
 
 PRODUTOR: enviado 12, status: 0
 
-<<<<<<< ******** até aqui era assincrono e se torna sincrono ******>>>>>
+
 
 PRODUTOR: enviado 13, status: 0
 
-Mensagem recebida, meu i eh 6 , e i do produtor era 6 , deveriam ser iguais. status: 4 
+ CONSUMIDOR 1: Mensagem recebida 12 
+ CONSUMIDOR 2: Mensagem recebida 13 
 
 
 PRODUTOR: enviado 14, status: 0
 
-Mensagem recebida, meu i eh 7 , e i do produtor era 7 , deveriam ser iguais. status: 4 
 
 
 PRODUTOR: enviado 15, status: 0
 
-Mensagem recebida, meu i eh 8 , e i do produtor era 8 , deveriam ser iguais. status: 4 
+ CONSUMIDOR 1: Mensagem recebida 14 
+ CONSUMIDOR 2: Mensagem recebida 15 
 
 
 PRODUTOR: enviado 16, status: 0
 
-Mensagem recebida, meu i eh 9 , e i do produtor era 9 , deveriam ser iguais. status: 4 
 
 
 PRODUTOR: enviado 17, status: 0
 
-Mensagem recebida, meu i eh 10 , e i do produtor era 10 , deveriam ser iguais. status: 4 
+ CONSUMIDOR 1: Mensagem recebida 16 
+ CONSUMIDOR 2: Mensagem recebida 17 
 
 
 PRODUTOR: enviado 18, status: 0
 
-Mensagem recebida, meu i eh 11 , e i do produtor era 11 , deveriam ser iguais. status: 4 
 
 
 PRODUTOR: enviado 19, status: 0
 
-Mensagem recebida, meu i eh 12 , e i do produtor era 12 , deveriam ser iguais. status: 4 
+ CONSUMIDOR 1: Mensagem recebida 18 
+ CONSUMIDOR 2: Mensagem recebida 19 
 
 
 PRODUTOR: enviado 20, status: 0
 
-Mensagem recebida, meu i eh 13 , e i do produtor era 13 , deveriam ser iguais. status: 4 
+
+
+PRODUTOR: enviado 21, status: 0
+
+ CONSUMIDOR 1: Mensagem recebida 20 
+ CONSUMIDOR 2: Mensagem recebida 21 
+
+
+PRODUTOR: enviado 22, status: 0
+
+
+
+PRODUTOR: enviado 23, status: 0
+
+ CONSUMIDOR 1: Mensagem recebida 22 
+ CONSUMIDOR 2: Mensagem recebida 23 
+
+
+PRODUTOR: enviado 24, status: 0
+
+
+
+PRODUTOR: enviado 25, status: 0
+
+ CONSUMIDOR 2: Mensagem recebida 24 
+ CONSUMIDOR 1: Mensagem recebida 25 
+
+
+PRODUTOR: enviado 26, status: 0
+
+
+
+PRODUTOR: enviado 27, status: 0
+
+ CONSUMIDOR 2: Mensagem recebida 26 
+ CONSUMIDOR 1: Mensagem recebida 27 
+
+
+PRODUTOR: enviado 28, status: 0
+
+
+
+PRODUTOR: enviado 29, status: 0
+
+ CONSUMIDOR 2: Mensagem recebida 28 
+ CONSUMIDOR 1: Mensagem recebida 29 
+
+
+PRODUTOR: enviado 30, status: 0
+
+
+
+PRODUTOR: enviado 31, status: 0
+
+ CONSUMIDOR 2: Mensagem recebida 30 
+ CONSUMIDOR 1: Mensagem recebida 31 
 
 -----------------------------------------------------
 CONCLUSÃO
-Tive dificuldade pra ver como setar o numero de bytes que a fila aceita
+Tive dificuldade pra ver como setar o numero de bytes que a fila aceita e de ver que estava funcionando 
+depois de conseguir, fiz com apenas um consumidor e vi que no inicio o produtor produz de modo 
+assincrono mas depois que a fila fica cheia ele passa a ficar sincronizado com o filho consumidor
 
 --------------------------------------------------------------
 
@@ -209,13 +289,228 @@ QUESTÃO 2)
 -----------------------------------------------------
 ARQUIVO.C
 
+/*   Lab02.c  */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <sys/msg.h>
+#include <sys/ipc.h>
+#define MAXFILA 8
+#define MAXPRODUZIDO 12
+
+typedef struct mymsg {
+    long int    mtype;     /* message type */
+    int        	meu_int;  /* message */
+} mymsg;
+
+int main (void)
+{
+	
+
+	int pid_consumidor,pid_consumidor2,id_fila_msg,status;	
+	mymsg m;
+	struct msqid_ds buf;
+	m.mtype = 1; 
+	id_fila_msg = msgget(IPC_PRIVATE, IPC_CREAT | 0666);
+	
+	if(	msgctl(id_fila_msg,IPC_STAT,&buf) == -1)
+	{
+		printf("erro msgctl, saindo \n");
+		exit(-1);
+	}
+	buf.msg_qbytes = 8 * sizeof(m.meu_int);
+	if (msgctl(id_fila_msg,IPC_SET,&buf)==-1)
+	{
+		printf("erro setando msgctl, saindo \n");
+		exit(-1);
+	}
+	msgrcv
+	pid_consumidor=fork();	
+	if (pid_consumidor == 0) {			
+		//consumidor 1 -- imprime impares
+		int i;					
+		for(i=0;i<MAXPRODUZIDO/2;i++)
+		{	
+			sleep(2);
+			status = msgrcv( id_fila_msg, &m, sizeof(m.meu_int), 1, 0); 
+			if(status != -1){
+                    printf("CONSUMIDOR Impar: Mensagem recebida %d , status:%d \n",m.meu_int,status);
+                }else{
+                    printf("CONSUMIDOR Impar: ERRO AO LER MSG\n");
+                }
+        }	
+        exit(0); //filho impar acabou
+	
+	} 
+	else { //pai
+		
+		pid_consumidor2=fork();
+		if (pid_consumidor2 == 0) //consumidor 2 - imprime pares
+		{
+			int i,status;	
+            sleep(2); // pra deixar evidente que estão pegando msgs especificas
+			for(i=0;i<MAXPRODUZIDO/2;i++)
+			{	
+				sleep(2);
+				status = msgrcv( id_fila_msg, &m, sizeof(m.meu_int), 2, 0);
+				if(status != -1){
+                    printf("CONSUMIDOR Par: Mensagem recebida %d , status:%d \n",m.meu_int,status);
+                }else{
+                    printf("CONSUMIDOR Par: ERRO AO LER MSG\n");
+                }			 
+				    
+            }
+             exit(0); //filho par acabou
+		}
+		else
+		{ //pai produtor
+			int i;
+			for(i=0;i<MAXPRODUZIDO;i++)
+			{
+                if(i%2 == 0)
+                { //mensagem par é tipo 2
+                    m.mtype=2;
+                }
+                else{ //impar tipo 1
+                    m.mtype=1;
+                }
+				m.meu_int = i;
+				status = msgsnd( id_fila_msg, &m, sizeof(m.meu_int), 0);
+				printf("\n\nPRODUTOR: enviado %d, status: %d\n\n",m.meu_int,status);
+					
+				sleep(1);
+			}
+
+			printf("produtor acabou\n");	
+			}
+		
+	}
+	waitpid(-1,&status,0);
+    waitpid(-1,&status,0);    
+	return 0;
+}
 -----------------------------------------------------
 
 COMPILAÇÃO E EXECUÇÃO
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab09$ gcc -Wall -o l02 Lab02.c 
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab09$ ./l02
 
 
 -----------------------------------------------------
 RESULTADO
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab09$./l02
+
+
+PRODUTOR: enviado 0, status: 0
+
+
+
+PRODUTOR: enviado 1, status: 0
+
+CONSUMIDOR Impar: Mensagem recebida 1 , status:4 
+
+
+PRODUTOR: enviado 2, status: 0
+
+
+
+PRODUTOR: enviado 3, status: 0
+
+CONSUMIDOR Impar: Mensagem recebida 3 , status:4 
+CONSUMIDOR Par: Mensagem recebida 0 , status:4 
+
+
+PRODUTOR: enviado 4, status: 0
+
+
+
+PRODUTOR: enviado 5, status: 0
+
+CONSUMIDOR Impar: Mensagem recebida 5 , status:4 
+CONSUMIDOR Par: Mensagem recebida 2 , status:4 
+
+
+PRODUTOR: enviado 6, status: 0
+
+
+
+PRODUTOR: enviado 7, status: 0
+
+CONSUMIDOR Impar: Mensagem recebida 7 , status:4 
+CONSUMIDOR Par: Mensagem recebida 4 , status:4 
+
+
+PRODUTOR: enviado 8, status: 0
+
+
+
+PRODUTOR: enviado 9, status: 0
+
+CONSUMIDOR Impar: Mensagem recebida 9 , status:4 
+CONSUMIDOR Par: Mensagem recebida 6 , status:4 
+
+
+PRODUTOR: enviado 10, status: 0
+
+
+
+PRODUTOR: enviado 11, status: 0
+
+CONSUMIDOR Impar: Mensagem recebida 11 , status:4 
+CONSUMIDOR Par: Mensagem recebida 8 , status:4 
+
+
+PRODUTOR: enviado 12, status: 0
+
+
+
+PRODUTOR: enviado 13, status: 0
+
+CONSUMIDOR Impar: Mensagem recebida 13 , status:4 
+CONSUMIDOR Par: Mensagem recebida 10 , status:4 
+
+
+PRODUTOR: enviado 14, status: 0
+
+
+
+PRODUTOR: enviado 15, status: 0
+
+CONSUMIDOR Impar: Mensagem recebida 15 , status:4 
+CONSUMIDOR Par: Mensagem recebida 12 , status:4 
+
+
+PRODUTOR: enviado 16, status: 0
+
+
+
+PRODUTOR: enviado 17, status: 0
+
+CONSUMIDOR Impar: Mensagem recebida 17 , status:4 
+CONSUMIDOR Par: Mensagem recebida 14 , status:4 
+
+
+PRODUTOR: enviado 18, status: 0
+
+
+
+PRODUTOR: enviado 19, status: 0
+
+CONSUMIDOR Impar: Mensagem recebida 19 , status:4 
+CONSUMIDOR Par: Mensagem recebida 16 , status:4 
+
+
+PRODUTOR: enviado 20, status: 0
 
 -----------------------------------------------------
 CONCLUSÃO
+
+A mudança para o segundo exercicio foi bem simples, bastou setar o tipo da mensagem, 
+e no filho eu passava o tipo de mensagem que eu queria receber na função msgrcv(), assim ele
+pega a proxima mensagem do tipo especifico que eu procuro
+
+-----------------------------------------------------
