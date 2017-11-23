@@ -62,13 +62,16 @@ void* Produtor (void *produtor){
 
 
 void* Consumidor (void *consumidor){
-    	int i;					
+        int i;
+        int aux;					
 		for(i=0;i<MAXPRODUZIDO;i++)
 		{	
 			sleep(2);
             semaforoP(semConsId);	
             pthread_mutex_lock( &mutex );   
-			printf("Mensagem recebida, %d \n",i);
+            aux=minhaFila[proxPosConsumidor];
+            printf("Mensagem recebida, %d \n",aux);
+            proxPosConsumidor = (proxPosConsumidor + 1) % MAXFILA;
             semaforoV(semProdId);
             pthread_mutex_unlock( &mutex );
 		}	

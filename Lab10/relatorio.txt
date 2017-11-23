@@ -38,10 +38,74 @@ ARQUIVO.C
 
 COMPILAÇÃO E EXECUÇÃO
 
-
+c1611074@geriba ~/Documents/pedro/Siscomp/Lab10$gcc -Wall -lpthread -o l02 Lab02
 
 -----------------------------------------------------
 RESULTADO
+c1611074@geriba ~/Documents/pedro/Siscomp/Lab10$./l02
+
+PRODUTOR: enviado 0
+
+PRODUTOR: enviado 1
+Mensagem recebida, 0 
+
+PRODUTOR: enviado 2
+
+PRODUTOR: enviado 3
+Mensagem recebida, 1 
+
+PRODUTOR: enviado 4
+
+PRODUTOR: enviado 5
+Mensagem recebida, 2 
+
+PRODUTOR: enviado 6
+
+PRODUTOR: enviado 7
+Mensagem recebida, 3 
+
+PRODUTOR: enviado 8
+
+PRODUTOR: enviado 9
+Mensagem recebida, 4 
+
+PRODUTOR: enviado 10
+
+PRODUTOR: enviado 11
+Mensagem recebida, 5 
+
+PRODUTOR: enviado 12
+
+PRODUTOR: enviado 13
+Mensagem recebida, 6 
+
+PRODUTOR: enviado 14
+Mensagem recebida, 7 
+
+PRODUTOR: enviado 15
+Mensagem recebida, 8 
+
+PRODUTOR: enviado 16
+Mensagem recebida, 9 
+
+PRODUTOR: enviado 17
+Mensagem recebida, 10 
+
+PRODUTOR: enviado 18
+Mensagem recebida, 11 
+
+PRODUTOR: enviado 19
+produtor acabou
+Mensagem recebida, 12 
+Mensagem recebida, 13 
+Mensagem recebida, 14 
+Mensagem recebida, 15 
+Mensagem recebida, 16 
+Mensagem recebida, 17 
+Mensagem recebida, 18 
+Mensagem recebida, 19 
+
+Tudo terminado
 
 
 -----------------------------------------------------
