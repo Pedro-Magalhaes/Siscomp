@@ -53,11 +53,11 @@ void *Correr(void *sapo)
         int descanso = rand() % DESCANSO_MAXIMO;
         sleep(descanso);
     }
-    pthread_mutex_lock( &mutex );
+   // pthread_mutex_lock( &mutex );
     printf("Sapo %d  chegou na posicaoo %d com %d pulos \n", (int)sapo,
            classificacao, pulos);
     cont++;
     classificacao++;
-    pthread_mutex_unlock( &mutex );
+    //pthread_mutex_unlock( &mutex );
     pthread_exit(NULL);
 }
