@@ -1,0 +1,351 @@
+ALUNO: Pedro Felipe Santos Magalhães – 1611074
+
+QUESTÃO 1) 
+Criar, via programa, o diretório sc em seu
+diretório corrente; criar os subdiretórios a, b
+e c; Criar arquivos txt nos subdiretórios e
+escrever textos nestes arquivos
+
+-----------------------------------------------------
+ARQUIVO.C
+/* Lab01.c */
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h> 
+#include <sys/stat.h> 
+#include <fcntl.h> 
+
+int main (void)
+{
+    FILE *arqA, *arqB, *arqC;
+    mkdir("sc",0777);
+    mkdir("sc/a",0777);
+    mkdir("sc/b",0777);
+    mkdir("sc/c",0777);
+
+    arqA = fopen("./sc/a/meuArquivoA.txt", "w");
+    arqB = fopen("./sc/b/meuArquivoB.txt", "w");
+    arqC = fopen("./sc/c/meuArquivoC.txt", "w");
+
+    fprintf(arqA,"Ola nobre colega, \n o senhor esta no arquivo A.txt \n Obrigado, de nada.\n");
+    fprintf(arqB,"Ola colega, \n Voce esta no arquivo B.txt \n de nada.\n");
+    fprintf(arqC,"Fala ai, \n ta no arquivo C.txt \n ta ta...\n");
+
+    fclose(arqA);fclose(arqB);fclose(arqC);
+    return 0;
+
+
+
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+gcc -Wall -o l01 Lab01.c
+./l01
+-----------------------------------------------------
+RESULTADO
+Pasta raiz sc com 3 subpastas a,b,c com os arquivos 
+meuArquivoA.txt,meuArquivoB.txt,meuArquivoC.txt um em cada subpasta
+-----------------------------------------------------
+CONCLUSÃO
+Essa questão eu comecei usando as primitivas "open", "write" mas acabei
+usando fopen e fprintf porque o arquivo já era preparado pra modo texto,
+com as primitivas o encoding do arquivo de texto não era reconhecido.
+
+--------------------------------------------------------------
+
+QUESTÃO 2) 
+Exibir os atributos de um dos arquivos
+criados.
+
+-----------------------------------------------------
+ARQUIVO.C
+/* Lab02 */
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h> 
+#include <sys/stat.h> 
+#include <fcntl.h> 
+
+void printStat (struct stat sb);
+
+int main (void)
+{
+    struct stat sb;
+    
+    stat("./sc/a/meuArquivoA.txt",&sb);
+
+    printf("File type do meuArquivo A:                ");
+    printStat(sb);
+    
+    stat("./sc/a",&sb);
+    printf("File type do diretorio a:                ");
+    printStat(sb);
+
+    return 0;
+}
+
+
+void printStat (struct stat sb)
+{
+    switch (sb.st_mode & S_IFMT) {
+           case S_IFBLK:  printf("block device\n");            break;
+           case S_IFCHR:  printf("character device\n");        break;
+           case S_IFDIR:  printf("directory\n");               break;
+           case S_IFIFO:  printf("FIFO/pipe\n");               break;
+           case S_IFLNK:  printf("symlink\n");                 break;
+           case S_IFREG:  printf("regular file\n");            break;
+           case S_IFSOCK: printf("socket\n");                  break;
+           default:       printf("unknown?\n");                break;
+           }
+
+}
+
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab11$ gcc -Wall -o l02 Lab02.c
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab11$ ./l02
+File type do meuArquivo A:                regular file
+File type do diretorio a:                directory
+
+-----------------------------------------------------
+RESULTADO
+
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab11$ ./l02
+File type do meuArquivo A:                regular file
+File type do diretorio a:                directory
+
+-----------------------------------------------------
+CONCLUSÃO
+Achei um pouco confuso de entender o uso da funçao pra printar as coisas, fora
+isso foi simple. Bastou acessar a propriedade da struct "st_mode" e fazer um
+switch pra ver qual o tipo do arquivo.
+
+--------------------------------------------------------------
+
+QUESTÃO 3) 
+ Buscar um dado arquivo a partir do diretório
+sc, ler e imprimir o conteúdo do arquivo
+encontrado.
+-----------------------------------------------------
+ARQUIVO.C
+/* Lab03.c */
+#include <unistd.h>
+#include <stdio.h>
+#include <dirent.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+void printConteudo (char* filepath);
+void printdir(char *dir, char* filename ,char * root)
+{
+    DIR *dp;
+    struct dirent *entry;
+    struct stat statbuf;
+    if((dp = opendir(dir)) == NULL) {
+        fprintf(stderr,"cannot open directory: %s\n", dir);
+        return;
+    }
+    chdir(dir);
+    while((entry = readdir(dp)) != NULL) {
+        lstat(entry->d_name,&statbuf);
+        if(S_ISDIR(statbuf.st_mode)) {
+            /* Found a directory, but ignore . and .. */
+            if(strcmp(".",entry->d_name) == 0 ||
+                strcmp("..",entry->d_name) == 0)
+                continue;
+            
+            /* Recurse at a new indent level */
+            printdir(entry->d_name,filename,root);
+        }
+        else if(S_ISREG(statbuf.st_mode))  
+            {//eh arquivo vou comparar com o nome buscado ***
+                if(strcmp(filename,entry->d_name) == 0)
+                {                                        
+                    printf("Found %s at dir %s\n",filename,dir);
+                    printConteudo(filename);
+                }
+            }
+    }
+    chdir("..");
+    closedir(dp);
+}
+
+int main()
+{
+    char file[] = "meuArquivoA.txt";
+    printf("search file: %s -- Directory scan of /sc:\n",file);
+    printdir(".", file ,"sc");
+    printf("done.\n");
+    exit(0);
+}
+
+void printConteudo (char* filepath)
+{
+    FILE* arq;    
+    int c;
+    arq = fopen(filepath,"r");
+    if(arq==NULL)
+    {
+        printf("erro abrindo arquivo\n\n");
+        return;
+    }
+    printf("conteudo do arquivo**********\n\n");
+    while((c=fgetc(arq) )!=EOF )
+    {
+
+        putchar(c);
+        
+    }
+    printf("\nFinal do conteudo*********\n");
+    fclose(arq);
+
+}
+
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab11$ gcc -Wall -o l03 Lab03.c 
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab11$ ./l03
+
+
+-----------------------------------------------------
+RESULTADO
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab11$ ./l03
+search file: meuArquivoA.txt -- Directory scan of /sc:
+Found meuArquivoA.txt at dir a
+conteudo do arquivo**********
+
+Ola nobre colega, 
+ o senhor esta no arquivo A.txt 
+ Obrigado, de nada.
+
+Final do conteudo*********
+done.
+
+-----------------------------------------------------
+CONCLUSÃO
+Essa deu bastante trabalho por que tinha que usar uma forma recursiva, 
+acabei pegando uma online que printava o caminho (imitava o comando "ls")
+e adaptei pra quando achasse o arquivo imprimisse o conteudo.
+-----------------------------------------------------
+
+QUESTÃO 4)
+Alterar o conteúdo do arquivo, exibindo o
+resultado obtido. Usar a primitiva seek para
+realizar esta alteração. 
+-----------------------------------------------------
+ARQUIVO.C
+/*  Lab04.c  */
+
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <fcntl.h>
+
+int main()
+{
+    int fa,fb,fc;
+    char a[]="ESCREVENDO NO INICIO";
+    char b[]="ESCREVENDO NO MEIO";
+    char c[]="ESCREVENDO NO FINAL";
+    fa=open("sc/a/meuArquivoA.txt",O_RDWR);  
+    fb=open("sc/b/meuArquivoB.txt",O_RDWR);
+    fc=open("sc/c/meuArquivoC.txt",O_RDWR);
+    if((fa < 0) || (fb < 0) || (fc < 0))
+    {
+        printf("erro abrindo arquivos\n");
+        return -1;
+    }
+    write(fa,a,strlen(a)); //ja abre no inicio entao vou escrever
+    lseek(fb,20,SEEK_SET); //levando arquivo b até uma posição no "meio" do arquivo
+    write(fb,b,strlen(b));
+    lseek(fc,0,SEEK_END); //colocando arquivo c no final
+    write(fc,c,strlen(c));
+
+    return 0;
+    
+}
+
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab11$ gcc -Wall -o l04 Lab04.c
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab11$ ./l04
+
+-----------------------------------------------------
+RESULTADO
+Arquivo a:
+ESCREVENDO NO INICIOo senhor esta no arquivo A.txt 
+ Obrigado, de nada.
+
+Arquivo b:
+Ola colega, 
+ Voce eESCREVENDO NO MEIOxt 
+ de nada.
+
+Arquivo c:
+Fala ai, 
+ ta no arquivo C.txt 
+ ta ta...
+ESCREVENDO NO FINAL
+-----------------------------------------------------
+CONCLUSÃO
+O lseek coloca o ponteiro pra proxima posição do arquivo na posição que a 
+gente indica, e ao escrever ele escreve por cima do que estiver no arquivo,
+até o ponto que paramos de escrever, o resto do arquivo que não foi sobrescrito
+permanece igual
+
+-----------------------------------------------------
+
+QUESTÃO 5)
+Mudar a permissão de acesso ao arquivo.
+-----------------------------------------------------
+ARQUIVO.C
+/*  Lab05.c */
+#include<fcntl.h> 
+#include<sys/stat.h> 
+#include<stdio.h> 
+#include<string.h> 
+#include<errno.h> 
+int main(void) 
+{ 
+    int fd, rt; 
+    fd = open("sc/a/meuArquivoA.txt", O_RDWR); 
+    if (fd == -1){ 
+        printf("Erro arquivo\n");
+     }
+    rt = fchmod(fd, S_IROTH | S_IWOTH | S_IXOTH); 
+    if (rt == -1){ 
+        printf("Erro fchmod() \n");
+     }
+     return 0;
+}
+
+-----------------------------------------------------
+
+COMPILAÇÃO E EXECUÇÃO
+
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab11$ gcc -Wall -o l05 Lab05.c
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab11$ ./l05
+
+-----------------------------------------------------
+RESULTADO
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab11$ ls -l sc/a <<permissão antes
+total 4
+-rw-r--r-- 1 pedro pedro 72 dez  3 11:16 meuArquivoA.txt
+
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab11$ ./l05
+pedro@pedro-TA990FXE:~/Documents/Siscomp/Lab11$ ls -l sc/a
+total 4
+-------rwx 1 pedro pedro 72 dez  3 11:16 meuArquivoA.txt  <<Mudou a permissão
+
+-----------------------------------------------------
+CONCLUSÃO
+Mudar a permissão de acesso foi uma tarefa mais simples de executar, bastou abrir o arquivo
+e chamar a fchmod() com as novas permissões desejadas.
+
+-----------------------------------------------------

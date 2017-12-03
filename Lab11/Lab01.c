@@ -7,7 +7,6 @@
 
 int main (void)
 {
-    struct stat sb;
     FILE *arqA, *arqB, *arqC;
     mkdir("sc",0777);
     mkdir("sc/a",0777);
@@ -18,36 +17,10 @@ int main (void)
     arqB = fopen("./sc/b/meuArquivoB.txt", "w");
     arqC = fopen("./sc/c/meuArquivoC.txt", "w");
 
-    stat("./sc/a/meuArquivoA.txt",&sb);
+    fprintf(arqA,"Ola nobre colega, \n o senhor esta no arquivo A.txt \n Obrigado, de nada.\n");
+    fprintf(arqB,"Ola colega, \n Voce esta no arquivo B.txt \n de nada.\n");
+    fprintf(arqC,"Fala ai, \n ta no arquivo C.txt \n ta ta...\n");
 
-    printf("File type do meuArquivo A:                ");
-
-           switch (sb.st_mode & S_IFMT) {
-           case S_IFBLK:  printf("block device\n");            break;
-           case S_IFCHR:  printf("character device\n");        break;
-           case S_IFDIR:  printf("directory\n");               break;
-           case S_IFIFO:  printf("FIFO/pipe\n");               break;
-           case S_IFLNK:  printf("symlink\n");                 break;
-           case S_IFREG:  printf("regular file\n");            break;
-           case S_IFSOCK: printf("socket\n");                  break;
-           default:       printf("unknown?\n");                break;
-           }
-    stat("./sc/a",&sb);
-    printf("File type do diretorio a:                ");
-
-           switch (sb.st_mode & S_IFMT) {
-           case S_IFBLK:  printf("block device\n");            break;
-           case S_IFCHR:  printf("character device\n");        break;
-           case S_IFDIR:  printf("directory\n");               break;
-           case S_IFIFO:  printf("FIFO/pipe\n");               break;
-           case S_IFLNK:  printf("symlink\n");                 break;
-           case S_IFREG:  printf("regular file\n");            break;
-           case S_IFSOCK: printf("socket\n");                  break;
-           default:       printf("unknown?\n");                break;
-           }
-
-
-    // algoritimo de busca  ming/36300-how-write-code-c-search-file.html
-
+    fclose(arqA);fclose(arqB);fclose(arqC);
     return 0;
 }
